@@ -51,6 +51,7 @@
             const [isAuthReady, setIsAuthReady] = useState(false);
             const [userId, setUserId] = useState(null);
             const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null); // Nuevo estado para manejar errores
 
             // Estado para los formularios
             const [noteForm, setNoteForm] = useState({
@@ -83,8 +84,9 @@
                         } else {
                             await signInAnonymously(auth);
                         }
-                    } catch (error) {
-                        console.error("Error de autenticación:", error);
+                    } catch (err) {
+                        console.error("Error de autenticación:", err);
+                        setError(`Error al conectar con Firebase. Asegúrate de que las variables de entorno están configuradas correctamente en Netlify. Detalles: ${err.message}`);
                     }
                 };
 
@@ -115,8 +117,8 @@
                             ...doc.data()
                         }));
                         setNotes(fetchedNotes);
-                    }, (error) => {
-                        console.error("Error al cargar notas:", error);
+                    }, (err) => {
+                        console.error("Error al cargar notas:", err);
                         setMessage('Error al cargar notas de entrega.');
                     });
 
@@ -127,8 +129,8 @@
                             ...doc.data()
                         }));
                         setQuotes(fetchedQuotes);
-                    }, (error) => {
-                        console.error("Error al cargar cotizaciones:", error);
+                    }, (err) => {
+                        console.error("Error al cargar cotizaciones:", err);
                         setMessage('Error al cargar cotizaciones.');
                     });
 
@@ -203,9 +205,9 @@
                         items: [{ description: '', amount: 0 }],
                         total: 0
                     });
-                } catch (error) {
-                    console.error("Error al guardar el documento:", error);
-                    setMessage(`Error al guardar el documento: ${error.message}`);
+                } catch (err) {
+                    console.error("Error al guardar el documento:", err);
+                    setMessage(`Error al guardar el documento: ${err.message}`);
                 }
             };
 
@@ -479,6 +481,19 @@
 
             // Renderizar la página actual
             const renderContent = () => {
+                if (loading) {
+                    return <div className="p-8 text-center text-gray-600">Cargando...</div>;
+                }
+
+                if (error) {
+                    return (
+                        <div className="p-8 text-center text-red-600 font-bold">
+                            <p className="mb-4">¡Ha ocurrido un error!</p>
+                            <p>{error}</p>
+                        </div>
+                    );
+                }
+
                 switch (currentPage) {
                     case 'generate-note':
                         return renderForm('note');
